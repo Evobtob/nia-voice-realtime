@@ -102,6 +102,20 @@ h1 {
   line-height: 1.4;
 }
 
+.diagnostics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin: 0 auto 22px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  background: rgba(0,0,0,.18);
+  color: rgba(246,242,255,.62);
+  font-size: 12px;
+  text-align: left;
+}
+
 .controls {
   display: grid;
   gap: 12px;

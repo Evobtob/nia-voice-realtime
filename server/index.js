@@ -36,7 +36,9 @@ app.get('/config', async (_req, res) => {
     model: config.session.model,
     voice: config.session.audio.output.voice,
     mode: 'webrtc',
-    authMode
+    authMode,
+    accessRequired: Boolean(process.env.APP_ACCESS_TOKEN),
+    appVersion: process.env.npm_package_version || '0.1.0'
   });
 });
 

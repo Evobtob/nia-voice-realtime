@@ -4,7 +4,10 @@ const els = {
   status: document.querySelector('#status'),
   detail: document.querySelector('#detail'),
   events: document.querySelector('#events'),
-  orb: document.querySelector('#orb')
+  orb: document.querySelector('#orb'),
+  diagAuth: document.querySelector('#diagAuth'),
+  diagMic: document.querySelector('#diagMic'),
+  diagConn: document.querySelector('#diagConn')
 };
 
 let pc = null;
@@ -30,6 +33,20 @@ function setState(state, status, detail = '') {
   els.orb.dataset.state = state;
   els.status.textContent = status;
   els.detail.textContent = detail;
+  if (els.diagConn) els.diagConn.textContent = `Ligação: ${status.toLowerCase()}`;
+}
+
+async function loadDiagnostics() {
+  try {
+    const response = await fetch('/config', { cache: 'no-store' });
+    const config = await response.json();
+    const authLabel = config.authMode === 'codex_oauth' ? 'OAuth Codex' : config.authMode;
+    els.diagAuth.textContent = `Auth: ${authLabel}${config.accessRequired ? ' + protegido' : ''}`;
+    log('config', config);
+  } catch (error) {
+    els.diagAuth.textContent = 'Auth: erro';
+    log('config:error', { message: error.message });
+  }
 }
 
 function log(event, payload = {}) {
@@ -121,6 +138,7 @@ async function startSession() {
         autoGainControl: true
       }
     });
+    els.diagMic.textContent = 'Mic: autorizado';
     localStream.getAudioTracks().forEach((track) => pc.addTrack(track, localStream));
 
     dc = pc.createDataChannel('oai-events');
@@ -149,6 +167,9 @@ async function startSession() {
     els.stop.disabled = false;
   } catch (error) {
     log('error', { message: error.message });
+    if (String(error.message || '').toLowerCase().includes('device') || String(error.name || '').includes('NotAllowed')) {
+      els.diagMic.textContent = 'Mic: erro/permissão';
+    }
     setState('error', 'Não consegui ligar.', error.message);
     await stopSession(false);
   } finally {
@@ -175,5 +196,7 @@ async function stopSession(updateUi = true) {
 
 els.start.addEventListener('click', startSession);
 els.stop.addEventListener('click', () => stopSession(true));
+
+loadDiagnostics();
 
 window.addEventListener('pagehide', () => stopSession(false));

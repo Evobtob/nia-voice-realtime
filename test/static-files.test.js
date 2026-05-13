@@ -14,7 +14,15 @@ test('index includes mobile/PWA metadata', async () => {
 test('client app uses WebRTC and requests ephemeral token from backend', async () => {
   const js = await readFile(new URL('public/app.js', root), 'utf8');
   assert.match(js, /RTCPeerConnection/);
-  assert.match(js, /\/token/);
-  assert.match(js, /getUserMedia/);
+  assert.match(js, /fetch\('\/token'/);
+  assert.match(js, /X-App-Access-Token/);
   assert.match(js, /response\.cancel/);
+  assert.match(js, /getUserMedia/);
+});
+
+test('index exposes a compact diagnostics panel', async () => {
+  const html = await readFile(new URL('public/index.html', root), 'utf8');
+  assert.match(html, /id="diagAuth"/);
+  assert.match(html, /id="diagMic"/);
+  assert.match(html, /id="diagConn"/);
 });
