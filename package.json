@@ -1,0 +1,17 @@
+{
+  "name": "nia-voice-realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Spike técnico: webapp mobile para conversa realtime por voz com Nia.",
+  "scripts": {
+    "dev": "node server/index.js",
+    "test": "node --test",
+    "start": "NODE_ENV=production node server/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {}
+}

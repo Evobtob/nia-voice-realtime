@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#070812" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Nia Voice" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Nia Voice Realtime</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="card" aria-live="polite">
+        <p class="eyebrow">Spike 001</p>
+        <h1>Nia Voice</h1>
+        <p class="subtitle">Conversa realtime. Não é troca de áudios.</p>
+
+        <div class="orb" id="orb" data-state="idle">
+          <span></span>
+        </div>
+
+        <p id="status" class="status">Pronta. Toca para iniciar.</p>
+        <p id="detail" class="detail">MVP sem ferramentas Hermes. Só voz realtime.</p>
+
+        <div class="controls">
+          <button id="startBtn" class="primary">Iniciar conversa</button>
+          <button id="stopBtn" class="secondary" disabled>Parar</button>
+        </div>
+
+        <details class="debug">
+          <summary>Eventos técnicos</summary>
+          <pre id="events"></pre>
+        </details>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
