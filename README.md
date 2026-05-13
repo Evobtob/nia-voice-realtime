@@ -4,7 +4,7 @@ Spike técnico para uma webapp mobile de conversa realtime por voz com Nia.
 
 ## Estado
 
-MVP técnico local criado. Ainda precisa de `OPENAI_API_KEY` real para testar áudio realtime.
+MVP técnico local criado. Usa OAuth do Codex por defeito, lendo tokens de `~/.codex/auth.json`. `OPENAI_API_KEY` continua suportado como override opcional.
 
 ## Stack
 
@@ -16,10 +16,18 @@ MVP técnico local criado. Ainda precisa de `OPENAI_API_KEY` real para testar á
 ## Setup
 
 ```bash
-cp .env.example .env
-# editar .env e definir OPENAI_API_KEY
+# garantir que o Codex OAuth existe
+codex login --device-auth
+
 npm install
 npm run dev
+```
+
+Opcionalmente, podes usar API key em vez de OAuth:
+
+```bash
+cp .env.example .env
+# editar .env e definir OPENAI_API_KEY
 ```
 
 Abrir:
@@ -54,6 +62,7 @@ npm run dev
 - [x] Webapp mobile-first
 - [x] Backend não expõe API key
 - [x] Token efémero via `/token`
+- [x] OAuth Codex via `~/.codex/auth.json` sem API key obrigatória
 - [x] WebRTC no browser
 - [x] Microfone via `getUserMedia`
 - [x] Áudio remoto via `<audio autoplay>`
@@ -64,4 +73,4 @@ npm run dev
 
 ## Decisão importante
 
-GitHub Pages sozinho não serve para este MVP, porque precisamos de backend para proteger a API key e gerar token efémero. O deploy público deve ser feito em Render/Fly/Railway/Vercel serverful ou no Mac mini com túnel HTTPS.
+GitHub Pages sozinho não serve para este MVP, porque precisamos de backend para proteger credenciais OAuth/API key e gerar token efémero. O deploy público deve ser feito em Render/Fly/Railway/Vercel serverful ou no Mac mini com túnel HTTPS.

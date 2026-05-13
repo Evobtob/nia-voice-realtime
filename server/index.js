@@ -2,7 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildSessionConfig, requireEnv } from './session-config.js';
+import { buildSessionConfig } from './session-config.js';
+import { resolveRealtimeBearerToken } from './codex-oauth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,23 +22,31 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'nia-voice-realtime' });
 });
 
-app.get('/config', (_req, res) => {
+app.get('/config', async (_req, res) => {
   const config = buildSessionConfig();
+  let authMode = 'unknown';
+  try {
+    const auth = await resolveRealtimeBearerToken();
+    authMode = auth.authMode;
+  } catch {
+    authMode = 'missing';
+  }
   res.json({
     model: config.session.model,
     voice: config.session.audio.output.voice,
-    mode: 'webrtc'
+    mode: 'webrtc',
+    authMode
   });
 });
 
 app.get('/token', async (_req, res) => {
-  let apiKey;
+  let auth;
   try {
-    apiKey = requireEnv('OPENAI_API_KEY');
+    auth = await resolveRealtimeBearerToken();
   } catch (error) {
     res.status(500).json({
-      error: 'missing_openai_api_key',
-      message: 'Define OPENAI_API_KEY no ficheiro .env antes de iniciar uma sessão realtime.'
+      error: 'missing_realtime_auth',
+      message: error.message || 'Sem credenciais para criar sessão realtime.'
     });
     return;
   }
@@ -45,7 +54,7 @@ app.get('/token', async (_req, res) => {
   const upstream = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${auth.token}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(buildSessionConfig())
