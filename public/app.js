@@ -16,6 +16,8 @@ let localStream = null;
 let remoteAudio = null;
 let activeResponse = false;
 let handledToolCalls = new Set();
+let lastAssistantSpeechAt = 0;
+const BARGE_IN_GRACE_MS = 900;
 
 function currentAccessToken() {
   const params = new URLSearchParams(window.location.search);
@@ -156,6 +158,7 @@ function handleServerEvent(raw) {
 
   if (event.type === 'response.created') {
     activeResponse = true;
+    lastAssistantSpeechAt = performance.now();
     setState('speaking', 'A responder…', 'Podes interromper. Eu paro e adapto-me.');
   }
 
@@ -164,8 +167,14 @@ function handleServerEvent(raw) {
     setState('live', 'À escuta.', 'Fala normalmente.');
   }
 
-  // Barge-in: quando Bruno começa a falar durante uma resposta, cancelamos a fala em curso.
+  // Barge-in: só interrompe se Bruno falar de forma detectada depois de uma pequena margem.
+  // Isto evita que respiração/ruído corte frases no início da resposta.
   if (event.type === 'input_audio_buffer.speech_started' && activeResponse) {
+    const responseAgeMs = performance.now() - lastAssistantSpeechAt;
+    if (responseAgeMs < BARGE_IN_GRACE_MS) {
+      log('barge-in:ignored', { responseAgeMs });
+      return;
+    }
     sendEvent({ type: 'response.cancel' });
     activeResponse = false;
     setState('live', 'Interrompida.', 'Estou a ouvir o novo pedido.');
@@ -281,6 +290,7 @@ async function stopSession(updateUi = true) {
   remoteAudio = null;
   activeResponse = false;
   handledToolCalls = new Set();
+  lastAssistantSpeechAt = 0;
 
   els.stop.disabled = true;
   els.start.disabled = false;

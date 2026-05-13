@@ -58,6 +58,17 @@ export function buildSessionConfig() {
       model: 'gpt-realtime',
       instructions: buildNiaSoulInstructions(),
       audio: {
+        input: {
+          noise_reduction: {
+            type: 'near_field'
+          },
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.78,
+            prefix_padding_ms: 200,
+            silence_duration_ms: 850
+          }
+        },
         output: {
           voice: 'marin'
         }

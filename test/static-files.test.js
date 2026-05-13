@@ -21,6 +21,9 @@ test('client app uses WebRTC and requests ephemeral token from backend', async (
   assert.match(js, /fetch\('\/drafts'/);
   assert.match(js, /function_call_output/);
   assert.match(js, /response\.cancel/);
+  assert.match(js, /BARGE_IN_GRACE_MS/);
+  assert.match(js, /lastAssistantSpeechAt/);
+  assert.match(js, /performance\.now\(\) - lastAssistantSpeechAt/);
   assert.match(js, /getUserMedia/);
 });
 
