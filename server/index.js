@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSessionConfig } from './session-config.js';
 import { resolveRealtimeBearerToken } from './codex-oauth.js';
+import { requireAppAccessToken } from './access-control.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,7 +40,7 @@ app.get('/config', async (_req, res) => {
   });
 });
 
-app.get('/token', async (_req, res) => {
+app.get('/token', requireAppAccessToken(), async (_req, res) => {
   let auth;
   try {
     auth = await resolveRealtimeBearerToken();

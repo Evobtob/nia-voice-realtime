@@ -13,6 +13,19 @@ let localStream = null;
 let remoteAudio = null;
 let activeResponse = false;
 
+function currentAccessToken() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('access');
+  if (fromUrl) {
+    localStorage.setItem('niaVoiceAccessToken', fromUrl);
+    params.delete('access');
+    const clean = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
+    window.history.replaceState({}, '', clean);
+    return fromUrl;
+  }
+  return localStorage.getItem('niaVoiceAccessToken') || '';
+}
+
 function setState(state, status, detail = '') {
   els.orb.dataset.state = state;
   els.status.textContent = status;
@@ -68,7 +81,11 @@ async function startSession() {
   setState('connecting', 'A ligar…', 'A pedir token efémero e microfone.');
 
   try {
-    const tokenResponse = await fetch('/token', { cache: 'no-store' });
+    const accessToken = currentAccessToken();
+    const tokenResponse = await fetch('/token', {
+      cache: 'no-store',
+      headers: accessToken ? { 'X-App-Access-Token': accessToken } : {}
+    });
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
