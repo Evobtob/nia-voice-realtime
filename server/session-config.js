@@ -1,3 +1,5 @@
+import { buildNiaContextPack } from './context-pack.js';
+
 export function requireEnv(name, env = process.env) {
   const value = env[name];
   if (!value) {
@@ -43,6 +45,8 @@ export function buildNiaSoulInstructions() {
     'Critério de resposta:',
     'Antes de responder, verifica: isto é verdadeiro, útil, claro, seguro e accionável?',
     'Fecha com próximo passo quando isso ajudar, mas não transformes toda conversa numa checklist.',
+    '',
+    buildNiaContextPack(),
   ].join('\n');
 }
 
