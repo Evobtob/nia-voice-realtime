@@ -6,6 +6,7 @@ import { buildSessionConfig } from './session-config.js';
 import { resolveRealtimeBearerToken } from './codex-oauth.js';
 import { requireAppAccessToken } from './access-control.js';
 import { searchVaultNotes } from './context-search.js';
+import { createVoiceDraft } from './draft-actions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +53,17 @@ app.post('/context/search', requireAppAccessToken(), async (req, res) => {
 
   const result = await searchVaultNotes(query);
   res.json(result);
+});
+
+app.post('/drafts', requireAppAccessToken(), async (req, res) => {
+  const { kind, title, content, recipient } = req.body || {};
+  if (typeof kind !== 'string' || typeof title !== 'string' || typeof content !== 'string') {
+    res.status(400).json({ error: 'invalid_draft', message: 'kind, title e content são obrigatórios.' });
+    return;
+  }
+
+  const result = await createVoiceDraft({ kind, title, content, recipient, source: 'voice' });
+  res.status(201).json(result);
 });
 
 app.get('/token', requireAppAccessToken(), async (_req, res) => {

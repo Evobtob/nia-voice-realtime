@@ -65,11 +65,6 @@ async function executeToolCall(call) {
   if (!call?.call_id || handledToolCalls.has(call.call_id)) return;
   handledToolCalls.add(call.call_id);
 
-  if (call.name !== 'search_context') {
-    sendToolOutput(call.call_id, { error: 'unsupported_tool', message: 'Ferramenta não suportada neste MVP.' });
-    return;
-  }
-
   let args = {};
   try {
     args = JSON.parse(call.arguments || '{}');
@@ -78,6 +73,20 @@ async function executeToolCall(call) {
     return;
   }
 
+  if (call.name === 'search_context') {
+    await executeContextSearch(call, args);
+    return;
+  }
+
+  if (call.name === 'create_draft') {
+    await executeDraftCreate(call, args);
+    return;
+  }
+
+  sendToolOutput(call.call_id, { error: 'unsupported_tool', message: 'Ferramenta não suportada neste MVP.' });
+}
+
+async function executeContextSearch(call, args) {
   try {
     setState('thinking', 'A consultar contexto…', 'Só leitura: notas e projectos.');
     const accessToken = currentAccessToken();
@@ -94,6 +103,31 @@ async function executeToolCall(call) {
     sendToolOutput(call.call_id, payload);
   } catch (error) {
     sendToolOutput(call.call_id, { error: 'context_search_failed', message: error.message });
+  }
+}
+
+async function executeDraftCreate(call, args) {
+  try {
+    setState('thinking', 'A criar rascunho…', 'Nada será enviado sem confirmação.');
+    const accessToken = currentAccessToken();
+    const response = await fetch('/drafts', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { 'X-App-Access-Token': accessToken } : {})
+      },
+      body: JSON.stringify({
+        kind: args.kind || 'note',
+        title: args.title || 'Rascunho por voz',
+        content: args.content || '',
+        recipient: args.recipient || ''
+      })
+    });
+    const payload = await response.json();
+    sendToolOutput(call.call_id, payload);
+  } catch (error) {
+    sendToolOutput(call.call_id, { error: 'draft_create_failed', message: error.message });
   }
 }
 

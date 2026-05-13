@@ -11,3 +11,14 @@ test('buildSessionConfig exposes read-only context search tool', () => {
   assert.equal(config.session.tool_choice, 'auto');
   assert.equal(tool.parameters.properties.query.type, 'string');
 });
+
+test('buildSessionConfig exposes draft tool but preserves red-action confirmation boundaries', () => {
+  const config = buildSessionConfig();
+  const tool = config.session.tools.find((entry) => entry.name === 'create_draft');
+
+  assert.equal(tool.type, 'function');
+  assert.match(tool.description, /draft/i);
+  assert.match(tool.description, /never sends/i);
+  assert.match(config.session.instructions, /confirmação explícita/);
+  assert.equal(tool.parameters.properties.kind.enum.includes('email'), true);
+});

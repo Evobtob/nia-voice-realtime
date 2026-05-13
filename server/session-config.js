@@ -41,6 +41,7 @@ export function buildNiaSoulInstructions() {
     'Neste MVP de voz ainda não executes ferramentas Hermes, emails, calendário, Trello, ficheiros ou mensagens.',
     'Se Bruno pedir uma acção real, explica que a ponte Hermes ainda não está ligada e oferece preparar o pedido para execução posterior.',
     'Acções para terceiros, irreversíveis, financeiras, reputacionais ou sensíveis exigem confirmação explícita.',
+    'Podes criar rascunhos locais e reversíveis com create_draft. Para emails, mensagens, calendário, Trello, publicações, dinheiro ou apagar coisas: cria apenas rascunho pendente; nunca digas que enviaste/executaste.',
     '',
     'Critério de resposta:',
     'Antes de responder, verifica: isto é verdadeiro, útil, claro, seguro e accionável?',
@@ -75,6 +76,35 @@ export function buildSessionConfig() {
               }
             },
             required: ['query'],
+            additionalProperties: false
+          }
+        },
+        {
+          type: 'function',
+          name: 'create_draft',
+          description: 'Creates a local reversible draft/action note for Bruno. It never sends emails, messages, calendar invites, payments, publications, deletions, or external actions. Red actions are saved as pending_confirmation and require Bruno to explicitly confirm later.',
+          parameters: {
+            type: 'object',
+            properties: {
+              kind: {
+                type: 'string',
+                enum: ['note', 'summary', 'idea', 'task', 'plan', 'email', 'message', 'calendar', 'trello', 'publish', 'payment', 'delete'],
+                description: 'Type of draft or intended action.'
+              },
+              title: {
+                type: 'string',
+                description: 'Short title for the draft.'
+              },
+              content: {
+                type: 'string',
+                description: 'Draft content or action details.'
+              },
+              recipient: {
+                type: 'string',
+                description: 'Recipient/person involved when relevant.'
+              }
+            },
+            required: ['kind', 'title', 'content'],
             additionalProperties: false
           }
         }
