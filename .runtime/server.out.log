@@ -1,5 +1,0 @@
-
-> nia-voice-realtime@0.1.0 start
-> NODE_ENV=production node server/index.js
-
-Nia Voice Realtime: http://localhost:3000
