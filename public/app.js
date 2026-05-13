@@ -15,6 +15,7 @@ let dc = null;
 let localStream = null;
 let remoteAudio = null;
 let activeResponse = false;
+let handledToolCalls = new Set();
 
 function currentAccessToken() {
   const params = new URLSearchParams(window.location.search);
@@ -60,6 +61,54 @@ function sendEvent(message) {
   log('client', message.type);
 }
 
+async function executeToolCall(call) {
+  if (!call?.call_id || handledToolCalls.has(call.call_id)) return;
+  handledToolCalls.add(call.call_id);
+
+  if (call.name !== 'search_context') {
+    sendToolOutput(call.call_id, { error: 'unsupported_tool', message: 'Ferramenta não suportada neste MVP.' });
+    return;
+  }
+
+  let args = {};
+  try {
+    args = JSON.parse(call.arguments || '{}');
+  } catch {
+    sendToolOutput(call.call_id, { error: 'invalid_arguments', message: 'Argumentos inválidos.' });
+    return;
+  }
+
+  try {
+    setState('thinking', 'A consultar contexto…', 'Só leitura: notas e projectos.');
+    const accessToken = currentAccessToken();
+    const response = await fetch('/context/search', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { 'X-App-Access-Token': accessToken } : {})
+      },
+      body: JSON.stringify({ query: args.query || '' })
+    });
+    const payload = await response.json();
+    sendToolOutput(call.call_id, payload);
+  } catch (error) {
+    sendToolOutput(call.call_id, { error: 'context_search_failed', message: error.message });
+  }
+}
+
+function sendToolOutput(callId, output) {
+  sendEvent({
+    type: 'conversation.item.create',
+    item: {
+      type: 'function_call_output',
+      call_id: callId,
+      output: JSON.stringify(output)
+    }
+  });
+  sendEvent({ type: 'response.create' });
+}
+
 function handleServerEvent(raw) {
   let event;
   try {
@@ -90,6 +139,15 @@ function handleServerEvent(raw) {
 
   if (event.type === 'error') {
     setState('error', 'Erro na sessão.', event.error?.message || 'Vê eventos técnicos.');
+  }
+
+  if (event.type === 'response.function_call_arguments.done') {
+    executeToolCall({ call_id: event.call_id, name: event.name, arguments: event.arguments });
+  }
+
+  const item = event.item || event.response?.output?.find?.((entry) => entry.type === 'function_call');
+  if (item?.type === 'function_call') {
+    executeToolCall({ call_id: item.call_id, name: item.name, arguments: item.arguments });
   }
 }
 
@@ -188,6 +246,7 @@ async function stopSession(updateUi = true) {
   localStream = null;
   remoteAudio = null;
   activeResponse = false;
+  handledToolCalls = new Set();
 
   els.stop.disabled = true;
   els.start.disabled = false;

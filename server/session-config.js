@@ -60,7 +60,26 @@ export function buildSessionConfig() {
         output: {
           voice: 'marin'
         }
-      }
+      },
+      tools: [
+        {
+          type: 'function',
+          name: 'search_context',
+          description: 'Read-only search in Bruno/Nia contextual notes and active project notes. Use only to answer questions about Bruno, projects, prior plans, and stored context. Never writes or executes actions.',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'Short search query in Portuguese or English.'
+              }
+            },
+            required: ['query'],
+            additionalProperties: false
+          }
+        }
+      ],
+      tool_choice: 'auto'
     }
   };
 }

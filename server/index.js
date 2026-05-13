@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildSessionConfig } from './session-config.js';
 import { resolveRealtimeBearerToken } from './codex-oauth.js';
 import { requireAppAccessToken } from './access-control.js';
+import { searchVaultNotes } from './context-search.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,17 @@ app.get('/config', async (_req, res) => {
     accessRequired: Boolean(process.env.APP_ACCESS_TOKEN),
     appVersion: process.env.npm_package_version || '0.1.0'
   });
+});
+
+app.post('/context/search', requireAppAccessToken(), async (req, res) => {
+  const query = req.body?.query;
+  if (typeof query !== 'string') {
+    res.status(400).json({ error: 'invalid_query', message: 'Query obrigatória.' });
+    return;
+  }
+
+  const result = await searchVaultNotes(query);
+  res.json(result);
 });
 
 app.get('/token', requireAppAccessToken(), async (_req, res) => {

@@ -16,6 +16,8 @@ test('client app uses WebRTC and requests ephemeral token from backend', async (
   assert.match(js, /RTCPeerConnection/);
   assert.match(js, /fetch\('\/token'/);
   assert.match(js, /X-App-Access-Token/);
+  assert.match(js, /search_context/);
+  assert.match(js, /function_call_output/);
   assert.match(js, /response\.cancel/);
   assert.match(js, /getUserMedia/);
 });
